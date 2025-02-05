@@ -164,7 +164,12 @@ median_wind.sp_station
 station_med[, atm.press_dist:= abs(atm.press-medians$atm.press)]
 median_atm.press_station <- station_med[atm.press_dist == 0]
 median_atm.press_station
+
+station_med[wind.sp_dist == 0 & atm.press_dist == 0]
 ```
+
+### Ans
+The following tables show which stations have median temperature, wind speed, and atmospheric pressure around the overall median. Weather station 725975 have median wind speed and atmospheric pressure at the overall median, otherwise there are no more coinciding stations.
 
 Knit the document, commit your changes, and save it on GitHub. Don't forget to add `README.md` to the tree, the first time you render it.
 
@@ -251,12 +256,22 @@ Once you are done with that, you can compute the following:
 
 All by the levels described before.
 
-```{r, results='asis'}
+```{r}
 summary_table <- met |>
   group_by(STATE, elev_cat) |>
-  summarise(temp_mean = mean(temp, na.rm=T)) |>
-  pivot_wider(names_from = elev_cat, values_from = temp_mean)
+  summarise(temp_mean = mean(temp, na.rm=T))
 
+summary_table <- summary_table |>
+  mutate(avg_temp_level = case_when(
+    temp_mean < 20 ~ "low",
+    temp_mean >= 20 & temp_mean < 25 ~ "mid",
+    temp_mean >= 25 ~ "high"
+  )) |>
+  pivot_wider(names_from = elev_cat, values_from = temp_mean)
+```
+
+
+```{r, results='asis'}
 kable(summary_table, booktabs = T) |>
   kable_styling(font_size = 10) |>
   kable_paper("hover", full_width = F)
@@ -274,5 +289,24 @@ Let's practice running regression models with smooth functions on X. We need the
 - fit both a linear model and a spline model (use `gam()` with a cubic regression spline on wind speed). Summarize and plot the results from the models and interpret which model is the best fit and why.
 
 ```{r}
+station_med_lt <- lazy_dt(station_med)
+station_med_lt <- station_med_lt |>
+  filter(between(atm.press, 1000, 1020)) |>
+  collect()
 
+ggplot(station_med_lt, aes(x=atm.press, y=temp)) +
+  geom_point() +
+  geom_smooth(method="lm", col="cyan") +
+  geom_smooth(method="gam", col="blue")
 ```
+
+```{r}
+lm_mod <- lm(temp~atm.press, data=station_med_lt)
+summary(lm_mod)
+
+gam_mod <- gam(temp~s(atm.press, bs="cr", k=20), data=station_med_lt)
+summary(gam_mod)
+plot(gam_mod)
+```
+# Ans.
+Both models have same significant coefficients and ANOVA test p-value, so I will go for the linear regression as it is simpler. The spline model is sensitive to the extreme atmospheric pressure values, so the model is over fitting the training data; on the other hand, the linear regression is less sensitive to the out-liars and does not appear to over fit the data based on the graph.
