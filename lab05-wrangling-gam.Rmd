@@ -95,6 +95,9 @@ library(dtplyr)
 library(dplyr)
 library(mgcv)
 library(ggplot2)
+library(leaflet)
+library(kableExtra)
+
 ```
 
 
@@ -127,8 +130,6 @@ met <- data.table::fread("met_all.gz")
 3. Merge the data as we did during the lecture. Use the `merge()` code and you can also try the tidy way with `left_join()`
 
 ```{r}
-# met <- left_join(x = met, y = stations, by = c("USAFID", "USAF"))
-
 met <- merge(x=met, y=stations, all.x=TRUE, all.y=FALSE, by.x = "USAFID", by.y = "USAF")
 ```
 
@@ -144,11 +145,13 @@ medians <- met[, .(
   atm.press_50 = quantile(atm.press, probs=0.5, na.rm=TRUE)
 )]
 
-station_med <- met[, .(
-  temp = quantile(temp, probs=0.5, na.rm=TRUE),
-  wind.sp = quantile(wind.sp, probs=0.5, na.rm=TRUE),
-  atm.press = quantile(atm.press, probs=0.5, na.rm=TRUE)
-), by=.(USAFID, STATE)]
+station_med <- met[ , .(
+  temp        = quantile(temp, probs= .5, na.rm = TRUE),
+  wind.sp     = quantile(wind.sp, probs= .5, na.rm = TRUE),
+  atm.press   = quantile(atm.press, probs= .5, na.rm = TRUE),
+  lon = mean(lon, na.rm = TRUE),
+  lat = mean(lat, na.rm = TRUE)
+), by = .(USAFID, STATE)]
 
 station_med[, temp_dist := abs(temp - medians$temp_50)]
 median_temp_station <- station_med[temp_dist == 0]
@@ -198,7 +201,26 @@ mid_point <- met[, .(
   lat_50 = quantile(lat, probs=0.5, na.rm=TRUE)
 ), by=STATE]
 
-#mif[,mid_eudist :]
+mid <- merge(x=met, y=mid_point, by="STATE")
+
+mid[,mid_eudist := sqrt(
+  (lon - lon_50)^2 + (lat - lat_50)^2
+)]
+
+mid_station <- mid[, .SD[which.min(mid_eudist)], by=STATE]
+
+leaflet() |>
+  addProviderTiles('CartoDB.Positron') |>
+  addCircles(
+    data=mid_station,
+    lat = ~lat, lng = ~lon, popup = "geographic mid station",
+    radius =400, color="blue"
+  )|>
+  addCircles(
+    data=id_station,
+    lat = ~lat, lng = ~lon, popup = "geographic mid station",
+    radius =400, color="red"
+  )
 ```
 
 Knit the doc and save it on GitHub.
