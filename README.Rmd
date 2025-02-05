@@ -4,6 +4,7 @@ output:
   html_document:
     html_preview: false
 link-citations: yes
+author: 'Afra Azad'
 ---
 
 # Learning goals
@@ -43,7 +44,7 @@ cd JSC370-labs
 wget https://raw.githubusercontent.com/JSC370/jsc370-2023/main/labs/lab05/lab05-wrangling-gam.Rmd
 mv lab05-wrangling-gam.Rmd README.Rmd
 # if wget is not available,
-curl https://raw.githubusercontent.com/JSC370/jsc370-2023/main/labs/lab05/lab05-wrangling-gam.Rmd --output README.Rmd
+curl https://github.com/AfraAd/JSC370-labs/blob/main/lab05-wrangling-gam.Rmd --output README.Rmd
 
 # Step 3
 # Happens on github
