@@ -54,7 +54,7 @@ git add README.Rmd
 git commit -m "First commit"
 
 # Step 5
-git remote add origin git@github.com:[username]/JSC370-labs
+git remote add origin git@github.com:AfraAd/JSC370-labs
 git push -u origin master
 ```
 
@@ -100,7 +100,7 @@ library(ggplot2)
 
 2. Load the met data from https://raw.githubusercontent.com/JSC370/JSC370-2024/main/data/met_all_2023.gz, and also the station data. For the latter, you can use the code we used during lecture to pre-process the stations data:
 
-```{r stations-data, eval = FALSE}
+```{r stations-data}
 # Download the data
 stations <- fread("ftp://ftp.ncdc.noaa.gov/pub/data/noaa/isd-history.csv")
 stations[, USAF := as.integer(USAF)]
@@ -170,7 +170,20 @@ Knit the document, commit your changes, and save it on GitHub. Don't forget to a
 Just like the previous question, you are asked to identify what is the most representative, the median, station per state. This time, instead of looking at one variable at a time, look at the euclidean distance. If multiple stations show in the median, select the one located at the lowest latitude.
 
 ```{r}
+station_med[, temp_50 := quantile(temp, probs=0.5, na.rm=TRUE), by=STATE]
+station_med[, wind.sp_50 := quantile(wind.sp, probs=0.5, na.rm=TRUE), by=STATE]
 
+station_med[, eudist := sqrt(
+  (temp - temp_50)^2 + (wind.sp - wind.sp_50)^2
+)]
+
+id_station <- station_med[, .SD[which.min(eudist)], by=STATE]
+
+id_station <- merge(
+  x = id_station, y=stations,
+  by.x="USAFID", by.y="USAF",
+  all.x=TRUE, all.y=FALSE
+)
 ```
 
 Knit the doc and save it on GitHub.
@@ -180,6 +193,12 @@ Knit the doc and save it on GitHub.
 For each state, identify what is the station that is closest to the mid-point of the state. Combining these with the stations you identified in the previous question, use `leaflet()` to visualize all ~100 points in the same figure, applying different colors for those identified in this question.
 
 ```{r}
+mid_point <- met[, .(
+  lon_50 = quantile(lon, probs=0.5, na.rm=TRUE),
+  lat_50 = quantile(lat, probs=0.5, na.rm=TRUE)
+), by=STATE]
+
+#mif[,mid_eudist :]
 ```
 
 Knit the doc and save it on GitHub.
