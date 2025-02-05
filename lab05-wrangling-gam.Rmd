@@ -97,7 +97,7 @@ library(mgcv)
 library(ggplot2)
 library(leaflet)
 library(kableExtra)
-
+library(tidyr)
 ```
 
 
@@ -236,7 +236,9 @@ Start by computing the states' average temperature. Use that measurement to clas
 - High: temp >= 25
 
 ```{r}
-
+met[, elev_cat := fifelse(
+  elev < 90, "low-elev", "high-elev"
+)]
 ```
 
 Once you are done with that, you can compute the following:
@@ -249,8 +251,15 @@ Once you are done with that, you can compute the following:
 
 All by the levels described before.
 
-```{r}
+```{r, results='asis'}
+summary_table <- met |>
+  group_by(STATE, elev_cat) |>
+  summarise(temp_mean = mean(temp, na.rm=T)) |>
+  pivot_wider(names_from = elev_cat, values_from = temp_mean)
 
+kable(summary_table, booktabs = T) |>
+  kable_styling(font_size = 10) |>
+  kable_paper("hover", full_width = F)
 ```
 
 Knit the document, commit your changes, and push them to GitHub. 
