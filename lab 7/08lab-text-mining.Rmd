@@ -1,10 +1,11 @@
 ---
 title: "Lab 08 - Text Mining/NLP"
 output: html_document
+author: "Afra Azad"
 ---
 
-```{r setup, echo=FALSE}
-knitr::opts_chunk$set(eval = F, include  = T)
+```{r setup, echo=TRUE}
+knitr::opts_chunk$set(eval = T, include  = T)
 ```
 
 # Learning goals
@@ -23,6 +24,7 @@ For this lab we will be working with the medical record transcriptions from http
 
 2. Render the Rmarkdown document using `github_document` and add it to your github site. Add link to github site in your html.
 
+**[Afra's GitHub Site Link](https://github.com/AfraAd/JSC370-labs)** 
 
 ### Setup packages
 
@@ -33,7 +35,7 @@ You should load in `tidyverse`, (or `data.table`), `tidytext`, `wordcloud2`, `tm
 
 Loading in reference transcription samples from https://www.mtsamples.com/
 
-```{r eval=FALSE}
+```{r}
 library(tidytext)
 library(tidyverse)
 library(wordcloud2)
@@ -53,7 +55,7 @@ head(mt_samples)
 
 We can use `count()` from `dplyr` to figure out how many different medical specialties are in the data. Are these categories related? overlapping? evenly distributed? Make a bar plot.
 
-```{r eval=FALSE}
+```{r}
 mt_samples |>
   count(medical_specialty, sort = TRUE) |>
   ggplot(aes(x = fct_reorder(medical_specialty, n), y=n)) +
@@ -74,7 +76,7 @@ mt_samples |>
 
 ### Explain what we see from this result. Does it makes sense? What insights (if any) do we get?
 
-```{r eval=FALSE}
+```{r}
 tokens <- mt_samples |>
   select(transcription) |>
   unnest_tokens(word, transcription) |>
@@ -106,7 +108,7 @@ tokens |>
 
 ### What do we see when you remove stopwords and then when you filter further? Does it give us a better idea of what the text is about?
 
-```{r eval=FALSE}
+```{r}
 head(stopwords("english"))
 length(stopwords("english"))
 head(stop_words)
@@ -139,7 +141,7 @@ tokens |>
 
 Repeat question 2, but this time tokenize into bi-grams. How does the result change if you look at tri-grams? Note we need to remove stopwords a little differently. You don't need to recreate the wordclouds.
 
-```{r eval=FALSE}
+```{r}
 stopwords2 <- c(stop_words$word, "mm", "mg", "noted")
 
 sw_start <- paste0("^", paste(stopwords2, collapse=" |^"), "$")
@@ -170,7 +172,7 @@ tokens_bigram |>
 
 Using the results from the bigram, pick a word and count the words that appear before and after it, and create a plot of the top 20.
 
-```{r eval=FALSE}
+```{r}
 library(stringr)
 # e.g. patient, blood, preoperative...
 tokens_bigram |>
@@ -192,7 +194,7 @@ tokens_bigram |>
 Which words are most used in each of the specialties? You can use `group_by()` and `top_n()` from `dplyr` to have the calculations be done within each specialty. Remember to remove stopwords. How about the 5 most used words?
 
 
-```{r eval=FALSE}
+```{r}
 mt_samples |>
   unnest_tokens(word, transcription) |>
   anti_join(stop_words, by="word") |>
@@ -214,7 +216,7 @@ See if there are any themes in the data by using a topic model (LDA).
 - then you can try the LDA function in `topicmodels`. Try different k values.
 - create a facet plot of the results from the LDA (see code from lecture)
 
-```{r eval=FALSE}
+```{r}
 # With k=5
 transcripts_dtm <- mt_samples |>
   select(transcription) |>
@@ -231,7 +233,7 @@ transcripts_lda <- LDA(transcripts_dtm, k=5, control = list(seed=4321))
 
 ```
 
-```{r eval=FALSE}
+```{r}
 library(reshape2)
 
 transcripts_top_terms <-
@@ -251,7 +253,7 @@ transcripts_top_terms |>
   theme_bw()
 ```
 
-```{r eval=FALSE}
+```{r}
 # With k = 2
 transcripts_dtm <- mt_samples |>
   select(transcription) |>
@@ -268,7 +270,7 @@ transcripts_lda <- LDA(transcripts_dtm, k=2, control = list(seed=4321))
 
 ```
 
-```{r eval=FALSE}
+```{r}
 transcripts_top_terms <-
   tidy(transcripts_lda, matrix="beta") |>
   filter(!str_detect(term, "[[:digit:]]+")) |>
