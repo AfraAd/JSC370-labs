@@ -177,7 +177,7 @@ system.time(my_boot(dat = data.frame(x, y), my_stat, R = 4000, ncpus = 1L))
 system.time(my_boot(dat = data.frame(x, y), my_stat, R = 4000, ncpus = 4L))
 ```
 
-_4 core one runs faster then 1 core as elasped is smaller value. I used 4 core as 8 core takes too much of my laptop's core._
+_4 core runs faster then 1 core as elapsed is a smaller value. I used 4 core as 8 core takes too much of my laptop's core._
 
 ## Problem 4: Compile this markdown document using Rscript
 
